@@ -60,7 +60,7 @@ class AutocompleteState(rx.ComponentState):
 
     @rx.event
     def blur_input(self):
-        pass
+        self.is_open = False
 
     @rx.event
     def close_dropdown(self):
@@ -100,9 +100,7 @@ class AutocompleteState(rx.ComponentState):
                 self.selected_items = self.selected_items[:-1]
 
     @classmethod
-    def get_component(
-        cls, placeholder: str, **props
-    ) -> rx.Component:
+    def get_component(cls, placeholder: str, **props) -> rx.Component:
         return rx.el.div(
             rx.el.div(
                 rx.foreach(
@@ -124,6 +122,7 @@ class AutocompleteState(rx.ComponentState):
                     on_change=cls.set_input_value,
                     on_key_down=cls.handle_key,
                     on_focus=cls.focus_input,
+                    on_blur=cls.blur_input,
                     class_name="flex-1 min-w-[120px] bg-transparent outline-none text-gray-800 placeholder-gray-400 py-1",
                     default_value=cls.input_value,
                 ),

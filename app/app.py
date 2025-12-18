@@ -1,8 +1,5 @@
 import reflex as rx
-from app.states.autocomplete_state import (
-    AutocompleteState,
-    AutocompleteItem,
-)
+from app.states.autocomplete_state import AutocompleteState, AutocompleteItem
 from app.states.demo_state import FRAMEWORKS
 
 
@@ -10,8 +7,10 @@ class FrameworkAutocomplete(AutocompleteState):
     autocomplete_items: list[AutocompleteItem] = FRAMEWORKS
     pass
 
-framework_autocomplete = FrameworkAutocomplete.create(placeholder="Type to search frameworks (e.g., 'web', 'python')...")
 
+framework_autocomplete = FrameworkAutocomplete.create(
+    placeholder="Type to search frameworks (e.g., 'web', 'python')..."
+)
 
 
 def index() -> rx.Component:
