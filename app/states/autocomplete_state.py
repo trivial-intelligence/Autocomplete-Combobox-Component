@@ -100,65 +100,69 @@ class AutocompleteState(rx.ComponentState):
                 self.selected_items = self.selected_items[:-1]
 
     @classmethod
-    def get_component(cls, placeholder: str, **props) -> rx.Component:
-        return rx.el.div(
+    def get_component(cls, placeholder, **props) -> rx.Component:
+        return get_autocomplete_state_component(cls, placeholder, **props)
+
+
+def get_autocomplete_state_component(cls: type[AutocompleteState], placeholder: str, **props) -> rx.Component:
+    return rx.el.div(
+        rx.el.div(
+            rx.foreach(
+                cls.selected_items,
+                lambda item: rx.el.span(
+                    item["name"].to(str),
+                    rx.icon(
+                        "x",
+                        size=14,
+                        class_name="ml-1.5 cursor-pointer hover:text-red-500 transition-colors",
+                        on_click=cls.remove_item(item),
+                        on_mouse_down=rx.prevent_default,
+                    ),
+                    class_name="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 animate-fade-in",
+                ),
+            ),
+            rx.el.input(
+                placeholder=rx.cond(cls.selected_items.length() > 0, "", placeholder),
+                on_change=cls.set_input_value,
+                on_focus=cls.focus_input,
+                on_blur=cls.blur_input,
+                on_key_down=cls.handle_key,
+                class_name="flex-1 min-w-[120px] bg-transparent outline-none text-gray-800 placeholder-gray-400 py-1",
+                default_value=cls.input_value,
+            ),
+            class_name=f"flex flex-wrap gap-2 p-2 min-h-[46px] w-full bg-white border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all duration-200 shadow-sm {props.get('class_name', '')}",
+        ),
+        rx.cond(
+            cls.is_open & (cls.filtered_items.length() > 0),
             rx.el.div(
                 rx.foreach(
-                    cls.selected_items,
-                    lambda item: rx.el.span(
-                        item["name"].to(str),
-                        rx.icon(
-                            "x",
-                            size=14,
-                            class_name="ml-1.5 cursor-pointer hover:text-red-500 transition-colors",
-                            on_click=cls.remove_item(item),
-                            on_mouse_down=rx.prevent_default,
-                        ),
-                        class_name="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 animate-fade-in",
-                    ),
-                ),
-                rx.el.input(
-                    placeholder=rx.cond(cls.selected_items.length() > 0, "", placeholder),
-                    on_change=cls.set_input_value,
-                    on_key_down=cls.handle_key,
-                    on_focus=cls.focus_input,
-                    on_blur=cls.blur_input,
-                    class_name="flex-1 min-w-[120px] bg-transparent outline-none text-gray-800 placeholder-gray-400 py-1",
-                    default_value=cls.input_value,
-                ),
-                class_name=f"flex flex-wrap gap-2 p-2 min-h-[46px] w-full bg-white border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all duration-200 shadow-sm {props.get('class_name', '')}",
-            ),
-            rx.cond(
-                cls.is_open & (cls.filtered_items.length() > 0),
-                rx.el.div(
-                    rx.foreach(
-                        cls.filtered_items,
-                        lambda item, index: rx.el.div(
-                            rx.el.div(
+                    cls.filtered_items,
+                    lambda item, index: rx.el.div(
+                        rx.el.div(
+                            rx.el.span(
+                                item["name"].to(str),
+                                class_name="font-medium text-gray-900",
+                            ),
+                            rx.cond(
+                                item["keywords"].length() > 0,
                                 rx.el.span(
-                                    item["name"].to(str),
-                                    class_name="font-medium text-gray-900",
+                                    item["keywords"].join(", "),
+                                    class_name="text-xs text-gray-400 ml-2 truncate max-w-[150px]",
                                 ),
-                                rx.cond(
-                                    item["keywords"].length() > 0,
-                                    rx.el.span(
-                                        item["keywords"].join(", "),
-                                        class_name="text-xs text-gray-400 ml-2 truncate max-w-[150px]",
-                                    ),
-                                ),
-                                class_name="flex items-center justify-between w-full",
                             ),
-                            class_name=rx.cond(
-                                index == cls.highlighted_index,
-                                "px-4 py-2.5 bg-indigo-50 text-indigo-700 cursor-pointer border-l-4 border-indigo-500",
-                                "px-4 py-2.5 text-gray-700 hover:bg-gray-50 cursor-pointer border-l-4 border-transparent",
-                            ),
-                            on_click=cls.select_item(item),
-                            on_mouse_down=rx.prevent_default,
+                            class_name="flex items-center justify-between w-full",
                         ),
+                        class_name=rx.cond(
+                            index == cls.highlighted_index,
+                            "px-4 py-2.5 bg-indigo-50 text-indigo-700 cursor-pointer border-l-4 border-indigo-500",
+                            "px-4 py-2.5 text-gray-700 hover:bg-gray-50 cursor-pointer border-l-4 border-transparent",
+                        ),
+                        on_click=cls.select_item(item),
+                        on_mouse_down=rx.prevent_default,
                     ),
-                    class_name="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200",
                 ),
+                class_name="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200",
             ),
-            class_name="relative w-full font-['Inter']",
-        )
+        ),
+        class_name="relative w-full font-['Inter']",
+    )
